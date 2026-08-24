@@ -1,0 +1,10 @@
+# 临时 patch:headless 模式不加载 modlens 插件,把 provider 从 deepseek-modlens 覆盖回官方 adapter
+- id: agent-default-model
+  config:
+    provider: deepseek-official
+    model: deepseek-v4-flash
+    reasoningEffort: high
+# settings.yaml 里 agent-default-model 指向 deepseek-modlens,会在运行时投影覆盖上面的配置;
+# headless 没有 modlens adapter,禁用 settings 插件让配置回落到 cordis 树
+- id: settings
+  disabled: true
