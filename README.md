@@ -65,7 +65,7 @@ D:\大肥鱼工作室\                  ← 协作根目录
 
 ---
 
-## 两种运行模式
+## 三种运行模式
 
 ### 模式一：Headless（适合重任务）
 
@@ -115,6 +115,31 @@ AGENT_BROWSER_HOME=<agent-browser 目录> ./bin/agent-browser --cdp 9222 click @
 
 任务文本要点：写绝对路径 `D:\大肥鱼工作室\<任务>\`；注明「跳过 claude CLI 初审」。
 
+### 模式三：双线并行（Headless 后台干活 × Web UI 看板）
+
+想让人类边看边让 Claude 派活时：`dsh web` 服务常驻 3080 当看板 + headless 任务照常在后台派发，两条线共享会话库。
+
+```bash
+# 1. 起 Web UI 服务（会自动打开默认浏览器；人类浏览器直接看 http://127.0.0.1:3080）
+cd /d/DeepSeek-Harness && npx dsh web
+
+# 2. headless 照常后台派活（与模式一完全相同）
+cd /d/大肥鱼工作室 && /d/DeepSeek-Harness/node_modules/.bin/dsh \
+  --profile headless \
+  --patch /d/DeepSeek-Harness/patch-headless.yml \
+  "<任务>"
+```
+
+验证结论（2026-08-27 实测）：
+
+- headless 会话会出现在 Web UI 会话树——服务端从磁盘快照读取；
+- **运行中的会话侧栏不自动轮询，刷新页面后即出现**，刷新后 UI 自动打开最新会话，可看任务原文、思路、每次工具调用全程；
+- 已完成的会话带自动标题常驻树中；
+- headless 下 DSH 的 bash 工具不可用，它会自行改用 PowerShell（如 `Start-Sleep`）；
+- Claude 仍负责 tail `_实时日志.md` 播报 + 终审复核。
+
+**进程回收**：任务完成后主动问人类是否停止进程（dsh web 服务、浏览器等），防止 token 消耗。
+
 ---
 
 ## 实战案例
@@ -130,6 +155,11 @@ AGENT_BROWSER_HOME=<agent-browser 目录> ./bin/agent-browser --cdp 9222 click @
 - **任务**：改进 4 份半导体专利草稿
 - **结果**：4 篇全部改进完成，监工终审抓出说明书/权利要求不一致、实用新型客体风险、专利号格式错误等问题，出具了审核报告
 
+### 案例三：双线并行首测（2026-08-27）
+
+- **任务**：短任务（3 文件）+ 2 分钟分步长任务（4 步、每步间隔 30 秒），验证「web 服务看板 × headless 后台」同时运行
+- **结果**：两个任务均通过终审；运行中会话需刷新页面才出现在 UI 树（刷新后自动打开最新会话），完成后带自动标题常驻
+
 ---
 
 ## 踩坑记录（含解法）
@@ -143,6 +173,8 @@ AGENT_BROWSER_HOME=<agent-browser 目录> ./bin/agent-browser --cdp 9222 click @
 | 5 | claude CLI 子进程偶发失败（stdout 为空、exit 非零） | 环境变量 `ANTHROPIC_DEFAULT_*` 被设成 deepseek 模型名 | `env -u ANTHROPIC_DEFAULT_* claude -p "..." --allowedTools "Read"` |
 | 6 | 权限分类器拦截 `--dangerously-skip-permissions`、`-ExecutionPolicy Bypass`、`DSH_PERMISSION_MODE=danger-full-access` | 安全策略 | 用最小权限替代：`--allowedTools "Read"`；直接 `powershell -NoProfile -Command`；输出限制在 dsh 工作区内 |
 | 7 | 想诊断 DSH 卡住原因但看不到内部状态 | 会话数据是 zstd 压缩的 JSONL | 用 web profile 的 `fzstd` 包解压 `~/.dsh/sessions/<cwd转义>/session-<id>/session.jsonl.zstd` |
+| 8 | headless 下 DSH 的 bash 工具不可用（DSH 自报） | headless 栈环境限制 | 无需干预，DSH 自行改用 PowerShell（sleep 用 `Start-Sleep`） |
+| 9 | 双线并行时运行中的 headless 会话不在 UI 会话树里 | 侧栏不自动轮询，服务端查询按需触发 | 刷新页面即出现（刷新后自动打开最新会话） |
 
 ---
 
