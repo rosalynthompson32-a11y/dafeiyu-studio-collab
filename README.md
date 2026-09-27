@@ -1,10 +1,10 @@
 # 大肥鱼工作室 · 多 Agent 协作工作流
 
-> **克劳德（Claude Code）监工主持 × 大肥鱼（DSH）执行 × 千问（Qwen）识图与制作** —— 人类只当验收官的多 Agent 协作框架
+> **Claude Code 监工主持 × DSH（DeepSeek Harness）执行 × Qwen 视觉与制作** —— 人类只当验收官的多 Agent 协作框架
 >
-> 人提需求 → 克劳德派活并全程播报 → 大肥鱼实时干活 → 大肥鱼自检 → 克劳德终审 → 交付人类
+> 人提需求 → 监工派活并全程播报 → 执行者实时干活 → 执行者自检 → 监工终审 → 交付人类
 >
-> 人不在电脑前时，飞书群聊里 @ 谁谁干活：@克劳德主持、@大肥鱼执行、@千问识图制作
+> 两条协作通道：人在电脑前用本机直连（Headless / Web UI 直播 / 双线并行）；人不在电脑前用飞书群聊 @ 派活
 
 ---
 
@@ -23,8 +23,8 @@
 |---|---|
 | 成果散落 | 统一工作区 `大肥鱼工作室\<任务名>\`，一任务一文件夹 |
 | 过程黑盒 | 实时日志机制 + Web UI 直播，每一步动作可见 |
-| 无人复核 | 双层审查：执行者自检（初审）+ 克劳德亲读文件（终审） |
-| 分工不清 | 固定角色表 + 按能力派活：人类验收、克劳德监工、大肥鱼执行、千问识图制作 |
+| 无人复核 | 双层审查：执行者自检（初审）+ 监工亲读文件（终审） |
+| 分工不清 | 固定角色表 + 按能力派活：人类验收、Claude Code 监工、DSH 执行、Qwen 视觉制作 |
 
 ---
 
@@ -33,23 +33,23 @@
 | 角色 | 职责 | 不做什么 |
 |---|---|---|
 | **人类（验收官）** | 提需求、看直播、最终拍板 | 不检查细节、不催进度 |
-| **克劳德 · Claude Code（监工/主持）** | 派活（显式展示启动命令）、播报进展、终审验收、汇报结论 | 不替执行者干活 |
-| **大肥鱼 · DSH（执行者）** | 产出文件、自检初审、写 `_实时日志.md`、批量后台任务 | 不再调用 claude CLI 子进程初审 |
-| **千问 · Qwen（视觉/制作）** | 识图、长文处理、PDF/PPT/Excel 制作 | 不接系统级/逆向类重活 |
+| **Claude Code（监工/主持）** | 派活（显式展示启动命令）、播报进展、终审验收、汇报结论 | 不替执行者干活 |
+| **DSH / DeepSeek Harness（执行者）** | 产出文件、自检初审、写 `_实时日志.md`、批量后台任务 | 不调用 claude CLI 子进程初审 |
+| **Qwen（视觉/制作）** | 识图、长文处理、PDF/PPT/Excel 制作 | 不接系统级/逆向类重活 |
 
 ### 按能力派活
 
 | 活 | 派给谁 |
 |---|---|
-| 派活主持、终审复核、汇报 | 克劳德 |
-| 产出文件、批量任务、后台长活 | 大肥鱼（任务看板派发） |
-| 识图、长文处理、PDF/PPT/Excel 制作 | 千问 |
-| 截图/UI 视觉判断（无千问时） | 大肥鱼（modlens vision），任务里附图片绝对路径，它输出所见结论，克劳德复核 |
+| 派活主持、终审复核、汇报 | Claude Code |
+| 产出文件、批量任务、后台长活 | DSH |
+| 识图、长文处理、PDF/PPT/Excel 制作 | Qwen |
+| 截图/UI 视觉判断（无 Qwen 时） | DSH（modlens vision），任务里附图片绝对路径，执行者输出所见结论，监工复核 |
 
 ### 审查分工（双层）
 
 ```
-执行者干活 → 执行者自检（初审，留痕于 _实时日志.md） → 克劳德亲读文件复核（终审） → 通过才汇报人类
+执行者干活 → 执行者自检（初审，留痕于 _实时日志.md） → 监工亲读文件复核（终审） → 通过才汇报人类
 ```
 
 > 为什么不让 DSH 起 claude 子进程初审：实测会永久挂起（headless 模式 pwsh 管道问题），
@@ -61,17 +61,17 @@
 
 ### 通道一：本机直连（人在电脑前）
 
-克劳德在工作区启动 DSH、派活、播报、终审——见下文「三种运行模式」。
+监工在工作区启动 DSH、派活、播报、终审——见下文「三种运行模式」。
 
-### 通道二：飞书群聊 @ 协作（人不在电脑前）
+### 通道二：群聊 @ 协作（人不在电脑前）
 
-三姐妹接入飞书群，**群聊里 @ 谁谁干活**：
+各 agent 以机器人身份接入同一飞书群，**群聊里 @ 谁谁干活**：
 
-- **@克劳德**：派活主持、复核、汇报（飞书私聊即达，手机遥控）
-- **@大肥鱼**：批量执行、接任务看板派单
-- **@千问**：识图、长文、制作
+- **@Claude Code**：派活主持、复核、汇报
+- **@DSH**：批量执行
+- **@Qwen**：识图、长文、制作
 
-约定：私聊 = 各自单独完成；群聊 @ = 协作（完成后 @ 克劳德反馈 + @ 主人汇报）；验收以群内可见产出为准。
+约定：私聊 = 各自单独完成；群聊 @ = 协作（完成后 @ 监工反馈 + @ 人类汇报）；验收以群内可见产出为准。
 
 ---
 
@@ -93,7 +93,7 @@ D:\大肥鱼工作室\                  ← 协作根目录
 
 ### 模式一：Headless（适合重任务）
 
-克劳德在工作室目录启动 DSH，任务直接写入任务文件夹，最终汇报经 stdout 回到监工。
+监工在工作室目录启动 DSH，任务直接写入任务文件夹，最终汇报经 stdout 回到监工。
 
 ```bash
 cd /d/大肥鱼工作室 && /d/DeepSeek-Harness/node_modules/.bin/dsh \
@@ -121,7 +121,7 @@ patch 文件（`D:\DeepSeek-Harness\patch-headless.yml`）：
 
 ### 模式二：Web UI 直播（适合想看全过程）
 
-人类在浏览器里亲眼看 DSH 干活（Think 过程、每次工具调用、失败重试、自检表），克劳德用 agent-browser 通过 CDP 自动化派活并当监工。
+人类在浏览器里亲眼看 DSH 干活（Think 过程、每次工具调用、失败重试、自检表），监工用 agent-browser 通过 CDP 自动化派活。
 
 ```bash
 # 1. 启动带调试端口的 Chrome（独立用户目录，保留登录态）
@@ -141,7 +141,7 @@ AGENT_BROWSER_HOME=<agent-browser 目录> ./bin/agent-browser --cdp 9222 click @
 
 ### 模式三：双线并行（Headless 后台干活 × Web UI 看板）
 
-想让人类边看边让克劳德派活时：`dsh web` 服务常驻 3080 当看板 + headless 任务照常在后台派发，两条线共享会话库。
+让人类边看边派活时：`dsh web` 服务常驻 3080 当看板 + headless 任务照常在后台派发，两条线共享会话库。
 
 ```bash
 # 1. 起 Web UI 服务（会自动打开默认浏览器；人类浏览器直接看 http://127.0.0.1:3080）
@@ -160,7 +160,7 @@ cd /d/大肥鱼工作室 && /d/DeepSeek-Harness/node_modules/.bin/dsh \
 - **运行中的会话侧栏不自动轮询，刷新页面后即出现**，刷新后 UI 自动打开最新会话，可看任务原文、思路、每次工具调用全程；
 - 已完成的会话带自动标题常驻树中；
 - headless 下 DSH 的 bash 工具不可用，它会自行改用 PowerShell（如 `Start-Sleep`）；
-- 克劳德仍负责 tail `_实时日志.md` 播报 + 终审复核。
+- 监工仍负责 tail `_实时日志.md` 播报 + 终审复核。
 
 **进程回收**：任务完成后主动问人类是否停止进程（dsh web 服务、浏览器等），防止 token 消耗。
 
@@ -184,10 +184,10 @@ cd /d/大肥鱼工作室 && /d/DeepSeek-Harness/node_modules/.bin/dsh \
 - **任务**：短任务（3 文件）+ 2 分钟分步长任务（4 步、每步间隔 30 秒），验证「web 服务看板 × headless 后台」同时运行
 - **结果**：两个任务均通过终审；运行中会话需刷新页面才出现在 UI 树（刷新后自动打开最新会话），完成后带自动标题常驻
 
-### 案例四：飞书群聊三姐妹回路（2026-09-27 全通）
+### 案例四：群聊 @ 协作回路（2026-09-27 实测全通）
 
-- **任务**：人不在电脑前，飞书群里 @ 三姐妹协作验收
-- **结果**：克劳德↔大肥鱼、克劳德↔千问、千问↔大肥鱼三个方向互 @ 全部打通，派活、产出、验收全程在群内可见
+- **任务**：人不在电脑前，飞书群里 @ 各 agent 协作验收
+- **结果**：三个 agent 两两互 @ 全部打通，派活、产出、验收全程在群内可见
 
 ---
 
@@ -197,7 +197,7 @@ cd /d/大肥鱼工作室 && /d/DeepSeek-Harness/node_modules/.bin/dsh \
 |---|---|---|---|
 | 1 | `NO_ADAPTER: no adapter registered for provider "deepseek-modlens"` | settings.yaml 用户层在运行时覆盖 cordis 配置，headless 栈不加载 modlens | patch 里 `- id: settings, disabled: true` |
 | 2 | `$.model missing required value` | cordis patch 的 config 是**整体替换**而非浅合并 | patch 写全 provider / model / reasoningEffort |
-| 3 | headless 下 DSH 起 claude 子进程初审时永久挂起（20+ 分钟无事件） | pwsh 工具生成子进程的管道问题 | 审查分工改为：初审执行者自检、终审监工克劳德 |
+| 3 | headless 下 DSH 起 claude 子进程初审时永久挂起（20+ 分钟无事件） | pwsh 工具生成子进程的管道问题 | 审查分工改为：初审执行者自检、终审监工 |
 | 4 | Web UI 会话里 Bash/Glob 工具遇中文路径崩溃（exit 3221225794 = DLL 初始化失败） | Web UI 服务进程环境与中文路径编码冲突 | 不干预，DSH 会自行改用 PowerShell；或任务里给短路径 |
 | 5 | claude CLI 子进程偶发失败（stdout 为空、exit 非零） | 环境变量 `ANTHROPIC_DEFAULT_*` 被设成 deepseek 模型名 | `env -u ANTHROPIC_DEFAULT_* claude -p "..." --allowedTools "Read"` |
 | 6 | 权限分类器拦截 `--dangerously-skip-permissions`、`-ExecutionPolicy Bypass`、`DSH_PERMISSION_MODE=danger-full-access` | 安全策略 | 用最小权限替代：`--allowedTools "Read"`；直接 `powershell -NoProfile -Command`；输出限制在 dsh 工作区内 |
@@ -220,9 +220,9 @@ cd /d/大肥鱼工作室 && /d/DeepSeek-Harness/node_modules/.bin/dsh \
 
 ## 技术栈
 
-- [DeepSeek Harness (dsh)](https://www.deepseek.com/) — 执行者「大肥鱼」，DeepSeek 官方 agent 框架（cordis 内核，web profile + headless profile）
-- [Claude Code](https://claude.com/claude-code) — 监工/主持「克劳德」，派活、播报、终审
-- Qwen Code（百炼 DashScope）— 视觉/制作「千问」，识图、长文、PDF/PPT/Excel
-- 飞书开放平台 — 群聊 @ 协作回路，cc-connect 手机遥控
+- [DeepSeek Harness (dsh)](https://www.deepseek.com/) — 执行者，DeepSeek 官方 agent 框架（cordis 内核，web profile + headless profile）
+- [Claude Code](https://claude.com/claude-code) — 监工/主持，派活、播报、终审
+- Qwen Code（DashScope）— 视觉/制作，识图、长文、PDF/PPT/Excel
+- 飞书开放平台 — 群聊 @ 协作回路
 - [agent-browser](https://github.com/vercel-labs/agent-browser) — Chrome DevTools Protocol 自动化，Web UI 直播模式的"手"
 - Chrome（remote-debugging-port 9222）— 直播窗口，人类用眼睛验收现场
